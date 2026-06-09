@@ -19,16 +19,46 @@ st.set_page_config(
 
 st.markdown("""
 <style>
+    /* ── Modo claro (por defecto) ── */
     :root {
-        --primary-color: #2563eb;
-        --success-color: #10b981;
-        --warning-color: #f59e0b;
-        --error-color: #ef4444;
-        --bg-color: #f8fafc;
-        --card-bg: #ffffff;
-        --text-primary: #1e293b;
+        --primary-color:  #2563eb;
+        --success-color:  #10b981;
+        --warning-color:  #f59e0b;
+        --error-color:    #ef4444;
+        --bg-color:       #f8fafc;
+        --card-bg:        #ffffff;
+        --text-primary:   #1e293b;
         --text-secondary: #64748b;
-        --border-color: #e2e8f0;
+        --border-color:   #e2e8f0;
+
+        --alert-success-bg: #d1fae5;
+        --alert-warning-bg: #fef3c7;
+        --alert-error-bg:   #fee2e2;
+        --alert-info-bg:    #dbeafe;
+        --debug-bg:         #f1f5f9;
+        --debug-border:     #cbd5e1;
+    }
+
+    /* ── Modo oscuro automático ── */
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --primary-color:  #60a5fa;
+            --success-color:  #34d399;
+            --warning-color:  #fbbf24;
+            --error-color:    #f87171;
+            --bg-color:       #0f172a;
+            --card-bg:        #1e293b;
+            --text-primary:   #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border-color:   #334155;
+
+            --alert-success-bg: #064e3b;
+            --alert-warning-bg: #451a03;
+            --alert-error-bg:   #450a0a;
+            --alert-info-bg:    #1e3a5f;
+            --debug-bg:         #1e293b;
+            --debug-border:     #334155;
+        }
     }
 
     .stApp {
@@ -49,40 +79,45 @@ st.markdown("""
     }
 
     .alert-success {
-        background-color: #d1fae5;
+        background-color: var(--alert-success-bg);
         border-left: 4px solid var(--success-color);
+        color: var(--text-primary);
         padding: 1rem;
         border-radius: 0.375rem;
         margin: 0.5rem 0;
     }
 
     .alert-warning {
-        background-color: #fef3c7;
+        background-color: var(--alert-warning-bg);
         border-left: 4px solid var(--warning-color);
+        color: var(--text-primary);
         padding: 1rem;
         border-radius: 0.375rem;
         margin: 0.5rem 0;
     }
 
     .alert-error {
-        background-color: #fee2e2;
+        background-color: var(--alert-error-bg);
         border-left: 4px solid var(--error-color);
+        color: var(--text-primary);
         padding: 1rem;
         border-radius: 0.375rem;
         margin: 0.5rem 0;
     }
 
     .alert-info {
-        background-color: #dbeafe;
+        background-color: var(--alert-info-bg);
         border-left: 4px solid var(--primary-color);
+        color: var(--text-primary);
         padding: 1rem;
         border-radius: 0.375rem;
         margin: 0.5rem 0;
     }
 
     .debug-box {
-        background-color: #f1f5f9;
-        border: 1px solid #cbd5e1;
+        background-color: var(--debug-bg);
+        border: 1px solid var(--debug-border);
+        color: var(--text-primary);
         border-radius: 0.375rem;
         padding: 0.75rem;
         margin: 0.5rem 0;
@@ -273,66 +308,6 @@ def analizar_placa(texto_ocr):
         "formato": formato,
         "restriccion_activa": restriccion_activa
     }, None
-
-
-def procesar_ocr(reader, imagen_crop, mostrar_preprocesamiento=False, col_imagen=None):
-    """Extrae el mejor texto de placa de un recorte de imagen."""
-    patrones_placa = [
-        r'^[A-Z]{3}\d{3}$',
-        r'^[A-Z]{3}\d{3}[A-Z]$',
-        r'^[A-Z]{3}\d{2}[A-Z]$',
-    ]
-
-    gray = cv2.cvtColor(imagen_crop, cv2.COLOR_BGR2GRAY)
-    ancho_actual = gray.shape[1]
-    factor = max(2.0, 400 / ancho_actual)
-    nuevo_ancho = int(gray.shape[1] * factor)
-    nuevo_alto  = int(gray.shape[0] * factor)
-    gray = cv2.resize(gray, (nuevo_ancho, nuevo_alto), interpolation=cv2.INTER_CUBIC)
-    kernel_nitidez = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
-    gray = cv2.filter2D(gray, -1, kernel_nitidez)
-    gray = cv2.GaussianBlur(gray, (3, 3), 0)
-
-    imagenes_ocr = [
-        gray,
-        cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1],
-        cv2.bitwise_not(cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]),
-        cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2),
-        cv2.filter2D(gray, -1, np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])),
-        cv2.createCLAHE(clipLimit=3.0, tileGridSize=(4, 4)).apply(gray),
-    ]
-
-    if mostrar_preprocesamiento and col_imagen:
-        with col_imagen:
-            st.image(imagenes_ocr[1], caption="Preprocesamiento OCR", width=300)
-
-    mejor_texto = ""
-    mejor_conf  = 0
-    todos_textos = []
-    candidatos_validos   = []
-    candidatos_generales = []
-
-    for img_ocr in imagenes_ocr:
-        resultados_ocr = reader.readtext(img_ocr, detail=1)
-        for (_, texto, conf_ocr) in resultados_ocr:
-            texto_limpio = re.sub(r'[^A-Z0-9]', '', texto.upper())
-            todos_textos.append(f"'{texto_limpio}' ({conf_ocr:.2%})")
-            if len(texto_limpio) < 4:
-                continue
-            es_placa = any(re.match(p, texto_limpio) for p in patrones_placa)
-            if es_placa:
-                candidatos_validos.append((texto_limpio, conf_ocr))
-            elif len(texto_limpio) >= 5:
-                candidatos_generales.append((texto_limpio, conf_ocr))
-
-    if candidatos_validos:
-        mejor_texto, mejor_conf = max(candidatos_validos, key=lambda x: x[1])
-    elif candidatos_generales:
-        con_digito = [c for c in candidatos_generales if re.search(r'\d', c[0])]
-        pool = con_digito if con_digito else candidatos_generales
-        mejor_texto, mejor_conf = max(pool, key=lambda x: x[1])
-
-    return mejor_texto, mejor_conf, todos_textos
 
 def registrar_deteccion(placa, tipo_vehiculo, formato, restriccion_activa, estado):
     deteccion = {
@@ -560,7 +535,7 @@ with tab_detector:
         col_imagen, col_resultados = st.columns([1, 1])
 
         with st.spinner("Procesando imagen..."):
-            resultados = detector(img, conf=confianza, imgsz=640)
+            resultados = detector(img, conf=confianza, imgsz=1280)
 
         detecciones = []
 
@@ -577,59 +552,13 @@ with tab_detector:
                 mostrar_debug("Detecciones YOLO",
                               f"Se encontraron {num_boxes} posibles placas con confianza >= {confianza:.2f}")
 
-        # ── Función interna para registrar una detección exitosa ──────────────
-        def registrar_crop(placa_crop, conf_det, modo="YOLO"):
-            mejor_texto, mejor_conf, todos_textos = procesar_ocr(
-                reader, placa_crop, mostrar_preprocesamiento, col_imagen
-            )
-
-            if mostrar_debug_info:
-                with col_resultados:
-                    mostrar_debug(
-                        f"OCR [{modo}]",
-                        f"{len(todos_textos)} textos | Mejor: '{mejor_texto}' ({mejor_conf:.2%})"
-                    )
-                    if todos_textos:
-                        st.write("**Todos los textos:**", ", ".join(todos_textos[:10]))
-
-            if not mejor_texto:
-                if mostrar_debug_info:
-                    with col_resultados:
-                        mostrar_debug("Sin texto OCR", "No se pudo leer ningún texto válido")
-                return
-
-            analisis, error_msg = analizar_placa(mejor_texto)
-            if analisis:
-                tipo_vehiculo = clasificar_tipo_placa(placa_crop, mejor_texto)
-                deteccion = {
-                    "placa": analisis["placa"],
-                    "tipo": tipo_vehiculo,
-                    "digito": analisis["digito"],
-                    "estado": analisis["estado"],
-                    "formato": analisis["formato"],
-                    "conf_det": conf_det,
-                    "conf_ocr": mejor_conf,
-                    "restriccion_activa": analisis["restriccion_activa"]
-                }
-                detecciones.append(deteccion)
-                registrar_deteccion(
-                    analisis["placa"], tipo_vehiculo,
-                    analisis["formato"], analisis["restriccion_activa"], analisis["estado"]
-                )
-                if mostrar_debug_info:
-                    with col_resultados:
-                        mostrar_debug("Placa válida", f"{analisis['placa']} - {tipo_vehiculo}")
-            else:
-                if mostrar_debug_info:
-                    with col_resultados:
-                        mostrar_debug("Placa rechazada", error_msg)
-
-        # ── Ruta principal: YOLO encontró bounding boxes ──────────────────────
         for r in resultados:
             for box in r.boxes:
                 x1, y1, x2, y2 = map(int, box.xyxy[0])
                 conf_det = float(box.conf[0])
+
                 cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+
                 placa_crop = img_original[y1:y2, x1:x2]
 
                 if placa_crop.size == 0:
@@ -640,24 +569,85 @@ with tab_detector:
 
                 if mostrar_debug_info:
                     with col_resultados:
-                        mostrar_debug(
-                            "Recorte de placa",
-                            f"Tamaño: {placa_crop.shape[1]}x{placa_crop.shape[0]} px | Confianza YOLO: {conf_det:.2%}"
-                        )
-                registrar_crop(placa_crop, conf_det, modo="YOLO")
+                        mostrar_debug("Recorte de placa",
+                                      f"Tamaño: {placa_crop.shape[1]}x{placa_crop.shape[0]} píxeles | Confianza YOLO: {conf_det:.2%}")
 
-        # ── Fallback: YOLO no detectó nada → OCR sobre imagen completa ───────
-        if num_boxes == 0:
-            if mostrar_debug_info:
-                with col_resultados:
-                    mostrar_debug(
-                        "Fallback activado",
-                        "YOLO no detectó bounding box. Aplicando OCR directo sobre la imagen completa."
-                    )
-            # Dibujar borde azul para indicar modo fallback
-            h, w = img.shape[:2]
-            cv2.rectangle(img, (4, 4), (w - 4, h - 4), (255, 100, 0), 3)
-            registrar_crop(img_original, conf_det=0.0, modo="Fallback")
+                gray = cv2.cvtColor(placa_crop, cv2.COLOR_BGR2GRAY)
+                gray = cv2.resize(gray, None, fx=4, fy=4, interpolation=cv2.INTER_CUBIC)
+                gray = cv2.GaussianBlur(gray, (3, 3), 0)
+
+                imagenes_ocr = [
+                    gray,
+                    cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1],
+                    cv2.bitwise_not(cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]),
+                    cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2),
+                    cv2.filter2D(gray, -1, np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]]))
+                ]
+
+                if mostrar_preprocesamiento:
+                    with col_imagen:
+                        st.image(imagenes_ocr[1], caption="Preprocesamiento OCR", width=300)
+
+                mejor_texto = ""
+                mejor_conf = 0
+                todos_textos = []
+
+                for img_ocr in imagenes_ocr:
+                    resultados_ocr = reader.readtext(img_ocr, detail=1)
+
+                    for (_, texto, conf_ocr) in resultados_ocr:
+                        texto_limpio = re.sub(r'[^A-Z0-9]', '', texto.upper())
+                        todos_textos.append(f"'{texto_limpio}' ({conf_ocr:.2%})")
+
+                        if len(texto_limpio) >= 5 and conf_ocr > mejor_conf:
+                            mejor_conf = conf_ocr
+                            mejor_texto = texto_limpio
+
+                if mostrar_debug_info:
+                    with col_resultados:
+                        mostrar_debug("Textos OCR encontrados",
+                                      f"{len(todos_textos)} textos | Mejor: '{mejor_texto}' ({mejor_conf:.2%})")
+                        if todos_textos:
+                            st.write("**Todos los textos:**", ", ".join(todos_textos[:10]))
+
+                if mejor_texto:
+                    analisis, error_msg = analizar_placa(mejor_texto)
+
+                    if analisis:
+                        tipo_vehiculo = clasificar_tipo_placa(placa_crop, mejor_texto)
+
+                        deteccion = {
+                            "placa": analisis["placa"],
+                            "tipo": tipo_vehiculo,
+                            "digito": analisis["digito"],
+                            "estado": analisis["estado"],
+                            "formato": analisis["formato"],
+                            "conf_det": conf_det,
+                            "conf_ocr": mejor_conf,
+                            "restriccion_activa": analisis["restriccion_activa"]
+                        }
+
+                        detecciones.append(deteccion)
+
+                        registrar_deteccion(
+                            analisis["placa"],
+                            tipo_vehiculo,
+                            analisis["formato"],
+                            analisis["restriccion_activa"],
+                            analisis["estado"]
+                        )
+
+                        if mostrar_debug_info:
+                            with col_resultados:
+                                mostrar_debug("Placa válida", f"{analisis['placa']} - {tipo_vehiculo}")
+                    else:
+                        if mostrar_debug_info:
+                            with col_resultados:
+                                mostrar_debug("Placa rechazada", error_msg)
+                else:
+                    if mostrar_debug_info:
+                        with col_resultados:
+                            mostrar_debug("Sin texto OCR", "No se pudo leer ningún texto válido")
 
         with col_imagen:
             st.image(img, channels="BGR", use_container_width=True)
@@ -684,10 +674,10 @@ with tab_detector:
                         col_formato.metric("Formato", det["formato"])
                         col_digito.metric("Dígito", det["digito"])
 
-                        etiqueta_det = f"{det['conf_det']:.2%}" if det['conf_det'] > 0 else "Fallback"
-                        st.caption(f"Confianza detección: {etiqueta_det} | Confianza OCR: {det['conf_ocr']:.2%}")
+                        st.caption(f"Confianza detección: {det['conf_det']:.2%} | Confianza OCR: {det['conf_ocr']:.2%}")
             else:
                 mostrar_alerta('error', "No se encontraron placas válidas.")
+
                 st.markdown("""
                 <strong>Recomendaciones:</strong>
                 <ul>
