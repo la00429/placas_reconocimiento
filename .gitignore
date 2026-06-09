@@ -1,5 +1,5 @@
 # ==========================================
-# ENTORNO VIRTUAL (NO SUBIR)
+# ENTORNOS VIRTUALES
 # ==========================================
 .venv/
 venv/
@@ -9,31 +9,29 @@ ENV/
 .venv312/
 
 # ==========================================
-# MODELOS ENTRENADOS (Archivos binarios grandes)
+# MODELOS — solo ignorar los que NO son el final
+# best.pt en runs/ SÍ se sube (es el modelo desplegado)
 # ==========================================
-*.pt
-*.pth
+runs/detect/                  # logs, pesos intermedios, gráficas de entrenamiento
+modelo_final/                 # carpeta alternativa que ya no se usa
 *.onnx
 *.h5
 *.pb
 *.tflite
-modelo_final/
-runs/detect/
-
 
 # ==========================================
-# DATASET (Muy pesado, no subir a GitHub)
+# DATASET — pesado, no va en GitHub
+# data.yaml SÍ se sube (es solo configuración, 1 KB)
 # ==========================================
 train/
 valid/
 test/
 dataset/
-data.yaml
 *.zip
 *.tar.gz
 
 # ==========================================
-# ARCHIVOS DE CACHE Y TEMPORALES
+# CACHE Y TEMPORALES
 # ==========================================
 __pycache__/
 *.py[cod]
@@ -41,10 +39,10 @@ __pycache__/
 *.so
 .Python
 .ipynb_checkpoints/
-*.ipynb_checkpoints
+.cache/
 
 # ==========================================
-# ARCHIVOS DE SISTEMA
+# SISTEMA OPERATIVO
 # ==========================================
 .DS_Store
 Thumbs.db
@@ -52,7 +50,7 @@ desktop.ini
 ehthumbs.db
 
 # ==========================================
-# CONFIGURACIÓN DE IDEs (Opcional)
+# IDEs
 # ==========================================
 .idea/
 .vscode/
@@ -61,7 +59,7 @@ ehthumbs.db
 *~
 
 # ==========================================
-# LOGS Y RESULTADOS
+# LOGS Y RESULTADOS DE PRUEBAS
 # ==========================================
 *.log
 monitor_placas.log
@@ -69,7 +67,7 @@ prueba_yolo/
 analisis_yolo/
 
 # ==========================================
-# IMÁGENES TEMPORALES DE PRUEBA
+# IMÁGENES TEMPORALES
 # ==========================================
 R.jpg
 prueba*.jpg
@@ -77,7 +75,7 @@ test_*.jpg
 *.tmp
 
 # ==========================================
-# SECRETOS Y CREDENCIALES (¡MUY IMPORTANTE!)
+# SECRETOS — nunca subir
 # ==========================================
 .streamlit/secrets.toml
 .env
@@ -86,12 +84,7 @@ test_*.jpg
 *.key
 
 # ==========================================
-# STREAMLIT CACHE
-# ==========================================
-.cache/
-
-# ==========================================
-# ARCHIVOS DE PYTHON COMPILADOS
+# PYTHON BUILD
 # ==========================================
 *.egg-info/
 dist/
@@ -99,7 +92,7 @@ build/
 *.egg
 
 # ==========================================
-# CARPETA DE BACKUP
+# BACKUP
 # ==========================================
 backup_placas/
 backup/
