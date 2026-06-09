@@ -18,8 +18,7 @@ ENV/
 *.pb
 *.tflite
 modelo_final/
-runs/detect/train/
-runs/detect/exp/
+runs/detect/
 
 
 # ==========================================
