@@ -5,8 +5,6 @@ __pycache__/
 .git/
 .idea/
 .DS_Store
-runs/
-modelo_final/
 test/
 train/
 valid/
