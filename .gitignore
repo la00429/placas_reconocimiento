@@ -18,7 +18,9 @@ ENV/
 *.pb
 *.tflite
 modelo_final/
-runs/
+runs/detect/train/
+runs/detect/exp/
+
 
 # ==========================================
 # DATASET (Muy pesado, no subir a GitHub)
