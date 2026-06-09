@@ -1,0 +1,104 @@
+# ==========================================
+# ENTORNO VIRTUAL (NO SUBIR)
+# ==========================================
+.venv/
+venv/
+env/
+ENV/
+.venv311/
+.venv312/
+
+# ==========================================
+# MODELOS ENTRENADOS (Archivos binarios grandes)
+# ==========================================
+*.pt
+*.pth
+*.onnx
+*.h5
+*.pb
+*.tflite
+modelo_final/
+runs/
+
+# ==========================================
+# DATASET (Muy pesado, no subir a GitHub)
+# ==========================================
+train/
+valid/
+test/
+dataset/
+data.yaml
+*.zip
+*.tar.gz
+
+# ==========================================
+# ARCHIVOS DE CACHE Y TEMPORALES
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ==========================================
+# ARCHIVOS DE SISTEMA
+# ==========================================
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# ==========================================
+# CONFIGURACIÓN DE IDEs (Opcional)
+# ==========================================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ==========================================
+# LOGS Y RESULTADOS
+# ==========================================
+*.log
+monitor_placas.log
+prueba_yolo/
+analisis_yolo/
+
+# ==========================================
+# IMÁGENES TEMPORALES DE PRUEBA
+# ==========================================
+R.jpg
+prueba*.jpg
+test_*.jpg
+*.tmp
+
+# ==========================================
+# SECRETOS Y CREDENCIALES (¡MUY IMPORTANTE!)
+# ==========================================
+.streamlit/secrets.toml
+.env
+.env.local
+*.pem
+*.key
+
+# ==========================================
+# STREAMLIT CACHE
+# ==========================================
+.cache/
+
+# ==========================================
+# ARCHIVOS DE PYTHON COMPILADOS
+# ==========================================
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ==========================================
+# CARPETA DE BACKUP
+# ==========================================
+backup_placas/
+backup/

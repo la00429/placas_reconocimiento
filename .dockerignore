@@ -1,0 +1,17 @@
+.venv/
+.venv312/
+__pycache__/
+*.pyc
+.git/
+.idea/
+.DS_Store
+runs/
+modelo_final/
+test/
+train/
+valid/
+data.yaml
+*.mp4
+*.jpg
+*.jpeg
+*.png
